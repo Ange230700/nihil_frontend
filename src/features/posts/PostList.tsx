@@ -1,10 +1,9 @@
 // src\features\posts\PostList.tsx
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { postApi } from "@nihil_frontend/api/api";
 import Spinner from "@nihil_frontend/components/Spinner";
-import { useToast } from "@nihil_frontend/contexts/ToastContext";
-import { mapApiError } from "@nihil_frontend/shared/api/mapApiError";
+import StateCard from "@nihil_frontend/components/StateCard";
 
 interface PostDTO {
   id: string;
@@ -15,33 +14,66 @@ interface PostDTO {
 }
 
 export default function PostList() {
-  const toast = useToast();
   const [posts, setPosts] = useState<PostDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback((): void => {
     setError(null);
     setLoading(true);
+
     postApi
       .get<{ status: string; data: PostDTO[] }>("/posts")
       .then((res) => {
         setPosts(res.data.data);
       })
-      .catch((err: unknown) => {
-        const { severity, summary, detail } = mapApiError(err);
-        setError(detail);
-        toast.show({ severity, summary, detail });
+      .catch((e: unknown) => {
+        let message = "Network error";
+        if (e instanceof Error) {
+          message = e.message;
+        } else if (
+          typeof e === "object" &&
+          e !== null &&
+          "message" in e &&
+          typeof (e as { message?: unknown }).message === "string"
+        ) {
+          message = (e as { message: string }).message;
+        }
         setPosts([]);
+        setError(message);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [toast]);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (loading) return <Spinner />;
-  if (error) return <div className="text-red-500">{error}</div>;
-  if (!posts.length) return <div>No posts yet.</div>;
+
+  if (error)
+    return (
+      <StateCard
+        title="Couldn’t load posts"
+        description={error}
+        icon="pi pi-cloud-off"
+        onRetry={load}
+        retryLabel="Retry"
+      />
+    );
+
+  if (!posts.length)
+    return (
+      <StateCard
+        title="No posts yet"
+        description="Create the first post to see it here."
+        icon="pi pi-comments"
+        onRetry={load}
+        retryLabel="Refresh"
+      />
+    );
 
   return (
     <div>
@@ -50,10 +82,17 @@ export default function PostList() {
         {posts.map((post) => (
           <li key={post.id} className="py-2">
             <div>{post.content}</div>
-            <div className="text-xs text-gray-400">{post.createdAt}</div>
+            {post.createdAt ? (
+              <div className="text-xs text-gray-400">{post.createdAt}</div>
+            ) : null}
           </li>
         ))}
       </ul>
+      <div className="mt-3">
+        <button type="button" className="text-sm underline" onClick={load}>
+          Refresh
+        </button>
+      </div>
     </div>
   );
 }

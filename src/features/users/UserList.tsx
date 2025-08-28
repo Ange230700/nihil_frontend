@@ -1,10 +1,9 @@
 // src\features\users\UserList.tsx
 
-// src/features/users/UserList.tsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { userApi } from "@nihil_frontend/api/api";
-import SkeletonList from "@nihil_frontend/components/SkeletonList";
-import { getErrorMessage } from "@nihil_frontend/shared/errors/getErrorMessage";
+import Spinner from "@nihil_frontend/components/Spinner";
+import StateCard from "@nihil_frontend/components/StateCard";
 
 interface UserDTO {
   id: string;
@@ -19,38 +18,62 @@ export default function UserList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback((): void => {
     setError(null);
     setLoading(true);
+
     userApi
       .get<{ data: UserDTO[] }>("/users")
       .then((res) => {
         setUsers(res.data.data);
       })
-      .catch((err: unknown) => {
-        setError(getErrorMessage(err));
+      .catch((e: unknown) => {
+        let message = "Network error";
+        if (e instanceof Error) {
+          message = e.message;
+        } else if (
+          typeof e === "object" &&
+          e !== null &&
+          "message" in e &&
+          typeof (e as { message?: unknown }).message === "string"
+        ) {
+          message = (e as { message: string }).message;
+        }
+        setUsers([]);
+        setError(message);
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
 
-  if (loading)
-    return (
-      <div aria-live="polite">
-        <h2 className="mb-2 text-lg font-bold">Users</h2>
-        <SkeletonList rows={6} withAvatar aria-label="Loading users" />
-      </div>
-    );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) return <Spinner />;
 
   if (error)
     return (
-      <div className="text-red-500" role="alert">
-        {error}
-      </div>
+      <StateCard
+        title="Couldn’t load users"
+        description={error}
+        icon="pi pi-cloud-off"
+        onRetry={load}
+        retryLabel="Retry"
+      />
     );
 
-  if (!users.length) return <div>No users found.</div>;
+  if (!users.length)
+    return (
+      <StateCard
+        title="No users yet"
+        description="There are no users to show. Try creating one, then refresh."
+        icon="pi pi-users"
+        onRetry={load}
+        retryLabel="Refresh"
+      />
+    );
 
   return (
     <div>
@@ -72,6 +95,12 @@ export default function UserList() {
           </li>
         ))}
       </ul>
+      {/* Optional manual refresh */}
+      <div className="mt-3">
+        <button type="button" className="text-sm underline" onClick={load}>
+          Refresh
+        </button>
+      </div>
     </div>
   );
 }
