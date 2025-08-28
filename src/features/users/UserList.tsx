@@ -1,8 +1,10 @@
 // src\features\users\UserList.tsx
 
+// src/features/users/UserList.tsx
 import { useEffect, useState } from "react";
 import { userApi } from "@nihil_frontend/api/api";
-import Spinner from "@nihil_frontend/components/Spinner";
+import SkeletonList from "@nihil_frontend/components/SkeletonList";
+import { getErrorMessage } from "@nihil_frontend/shared/errors/getErrorMessage";
 
 interface UserDTO {
   id: string;
@@ -15,22 +17,39 @@ interface UserDTO {
 export default function UserList() {
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setError(null);
+    setLoading(true);
     userApi
       .get<{ data: UserDTO[] }>("/users")
       .then((res) => {
         setUsers(res.data.data);
       })
       .catch((err: unknown) => {
-        console.error(err);
+        setError(getErrorMessage(err));
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading)
+    return (
+      <div aria-live="polite">
+        <h2 className="mb-2 text-lg font-bold">Users</h2>
+        <SkeletonList rows={6} withAvatar aria-label="Loading users" />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="text-red-500" role="alert">
+        {error}
+      </div>
+    );
+
   if (!users.length) return <div>No users found.</div>;
 
   return (

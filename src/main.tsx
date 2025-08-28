@@ -10,6 +10,7 @@ import ThemeStyles from "@nihil_frontend/components/ThemeStyles.tsx";
 import { ThemeProvider } from "@nihil_frontend/providers/ThemeProvider.tsx";
 import App from "./App.tsx";
 import { ToastProvider } from "@nihil_frontend/providers/ToastProvider.tsx";
+import CsrfBootstrap from "@nihil_frontend/app/bootstrap/CsrfBootstrap";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {
@@ -22,6 +23,7 @@ createRoot(rootEl).render(
       <PrimeReactProvider>
         <ThemeProvider>
           <ToastProvider>
+            <CsrfBootstrap />
             <ThemeStyles />
             <App />
           </ToastProvider>

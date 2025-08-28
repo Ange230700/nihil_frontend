@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { postApi } from "@nihil_frontend/api/api";
 import Spinner from "@nihil_frontend/components/Spinner";
 import { useToast } from "@nihil_frontend/contexts/ToastContext";
+import { mapApiError } from "@nihil_frontend/shared/api/mapApiError";
 
 interface PostDTO {
   id: string;
@@ -28,21 +29,9 @@ export default function PostList() {
         setPosts(res.data.data);
       })
       .catch((err: unknown) => {
-        let message = "Unknown error";
-        if (
-          typeof err === "object" &&
-          err &&
-          "message" in err &&
-          typeof err.message === "string"
-        ) {
-          message = err.message;
-        }
-        setError(message);
-        toast.show({
-          severity: "error",
-          summary: "Error",
-          detail: `Failed to load posts: ${message}`,
-        });
+        const { severity, summary, detail } = mapApiError(err);
+        setError(detail);
+        toast.show({ severity, summary, detail });
         setPosts([]);
       })
       .finally(() => {

@@ -5,6 +5,7 @@ import { userApi } from "@nihil_frontend/api/api";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { useToast } from "@nihil_frontend/contexts/ToastContext";
+import { mapApiError } from "@nihil_frontend/shared/api/mapApiError";
 
 export default function UserCreateForm({
   onCreated,
@@ -24,33 +25,16 @@ export default function UserCreateForm({
     setLoading(true);
     try {
       await userApi.post("/users", form);
-      toast.show({ severity: "success", summary: "User created!" });
+      toast.show({
+        severity: "success",
+        summary: "Success",
+        detail: "User created!",
+      });
       setForm({ username: "", email: "", password: "" });
       onCreated?.();
     } catch (err: unknown) {
-      let errorMsg = "Failed";
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        typeof err.response === "object" &&
-        err.response !== null &&
-        "data" in err.response &&
-        typeof err.response.data === "object" &&
-        err.response.data !== null &&
-        "error" in err.response.data &&
-        typeof err.response.data.error === "object" &&
-        err.response.data.error !== null &&
-        "message" in err.response.data.error &&
-        typeof err.response.data.error.message === "string"
-      ) {
-        errorMsg = err.response.data.error.message;
-      }
-      toast.show({
-        severity: "error",
-        summary: "Error",
-        detail: errorMsg,
-      });
+      const { severity, summary, detail } = mapApiError(err);
+      toast.show({ severity, summary, detail });
     } finally {
       setLoading(false);
     }
