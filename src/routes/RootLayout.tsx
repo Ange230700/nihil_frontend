@@ -1,22 +1,18 @@
-// src\App.tsx
+// src\routes\RootLayout.tsx
 
-import { Routes, Route } from "react-router-dom";
-import Home from "@nihil_frontend/pages/Home";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 import Header from "@nihil_frontend/components/Header";
 import Footer from "@nihil_frontend/components/Footer";
 
-function App() {
+export default function RootLayout() {
   return (
     <>
       <Header />
       <main className="flex flex-1 flex-col p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
+        <Outlet />
       </main>
       <Footer />
+      <ScrollRestoration />
     </>
   );
 }
-
-export default App;
