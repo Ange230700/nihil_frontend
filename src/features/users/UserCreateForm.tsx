@@ -1,50 +1,44 @@
 // src\features\users\UserCreateForm.tsx
 
 import { useState } from "react";
-import { userApi } from "@nihil_frontend/api/api";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { useToast } from "@nihil_frontend/contexts/ToastContext";
-import { mapApiError } from "@nihil_frontend/shared/api/mapApiError";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createUser } from "@nihil_frontend/api/users";
 
-export default function UserCreateForm({
-  onCreated,
-}: Readonly<{
-  onCreated?: () => void;
-}>) {
+export default function UserCreateForm() {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
-  const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const qc = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: createUser,
+    onSuccess: async () => {
+      toast.show({ severity: "success", summary: "User created!" });
+      setForm({ username: "", email: "", password: "" });
+      await qc.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (err: unknown) => {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: unknown }).message)
+          : "Failed";
+      toast.show({ severity: "error", summary: "Error", detail: msg });
+    },
+  });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await userApi.post("/users", form);
-      toast.show({
-        severity: "success",
-        summary: "Success",
-        detail: "User created!",
-      });
-      setForm({ username: "", email: "", password: "" });
-      onCreated?.();
-    } catch (err: unknown) {
-      const { severity, summary, detail } = mapApiError(err);
-      toast.show({ severity, summary, detail });
-    } finally {
-      setLoading(false);
-    }
+    mutate(form);
   }
 
   return (
-    <form
-      className="flex items-end gap-2"
-      onSubmit={handleSubmit as unknown as (e: React.FormEvent) => void}
-    >
+    <form className="flex items-end gap-2" onSubmit={handleSubmit}>
       <span>
         <label className="block text-sm">
           Username
@@ -81,8 +75,8 @@ export default function UserCreateForm({
       </span>
       <Button
         type="submit"
-        label={loading ? "Adding..." : "Add"}
-        disabled={loading}
+        label={isPending ? "Adding..." : "Add"}
+        disabled={isPending}
       />
     </form>
   );

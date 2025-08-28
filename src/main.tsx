@@ -11,11 +11,23 @@ import { ThemeProvider } from "@nihil_frontend/providers/ThemeProvider.tsx";
 import App from "./App.tsx";
 import { ToastProvider } from "@nihil_frontend/providers/ToastProvider.tsx";
 import CsrfBootstrap from "@nihil_frontend/app/bootstrap/CsrfBootstrap";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {
   throw new Error("Root element not found");
 }
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 createRoot(rootEl).render(
   <StrictMode>
@@ -23,9 +35,12 @@ createRoot(rootEl).render(
       <PrimeReactProvider>
         <ThemeProvider>
           <ToastProvider>
-            <CsrfBootstrap />
-            <ThemeStyles />
-            <App />
+            <QueryClientProvider client={queryClient}>
+              <CsrfBootstrap />
+              <ThemeStyles />
+              <App />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
           </ToastProvider>
         </ThemeProvider>
       </PrimeReactProvider>
