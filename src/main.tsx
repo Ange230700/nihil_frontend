@@ -27,6 +27,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "@nihil_frontend/routes/router";
 import { auditThemeContrast } from "@nihil_frontend/a11y/contrast";
 import { I18nProvider } from "@nihil_frontend/providers/I18nProvider";
+import "@nihil_frontend/shared/config/env";
 
 const prefersReducedMotion =
   typeof window !== "undefined" &&
