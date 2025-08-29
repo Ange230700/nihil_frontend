@@ -14,6 +14,7 @@ import {
   PostCreateSchema,
   type PostCreateInput,
 } from "@nihil_frontend/entities/post/validation";
+import { swallow } from "@nihil_frontend/shared/utils/swallow";
 
 export default function PostCreateForm({
   onCreated,
@@ -60,9 +61,7 @@ export default function PostCreateForm({
   return (
     <form
       className="flex flex-wrap items-end gap-3"
-      onSubmit={(e) => {
-        void onSubmit(e);
-      }}
+      onSubmit={swallow(onSubmit)}
       noValidate
     >
       <Field id="userId" label="User ID" error={errors.userId?.message}>

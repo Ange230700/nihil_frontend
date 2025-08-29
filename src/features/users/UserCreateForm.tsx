@@ -14,6 +14,7 @@ import {
   UserCreateSchema,
   type UserCreateInput,
 } from "@nihil_frontend/entities/user/validation";
+import { swallow } from "@nihil_frontend/shared/utils/swallow";
 
 export default function UserCreateForm({
   onCreated,
@@ -60,9 +61,7 @@ export default function UserCreateForm({
   return (
     <form
       className="flex flex-wrap items-end gap-3"
-      onSubmit={(e) => {
-        void onSubmit(e);
-      }}
+      onSubmit={swallow(onSubmit)}
       noValidate
     >
       <Field id="username" label="Username" error={errors.username?.message}>
