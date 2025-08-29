@@ -1,6 +1,7 @@
 // src\vite-env.d.ts
 
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
   readonly VITE_USER_SERVICE_API_URL: string;
