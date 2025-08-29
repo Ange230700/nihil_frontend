@@ -1,0 +1,17 @@
+{
+  "app.title": "Nihil",
+  "nav.viewSource": "Voir le code source sur GitHub",
+  "users.title": "Utilisateurs",
+  "users.add": "Ajouter",
+  "users.adding": "Ajout…",
+  "users.empty": "Aucun utilisateur.",
+  "posts.title": "Publications",
+  "posts.post": "Publier",
+  "posts.posting": "Publication…",
+  "posts.empty": "Aucune publication.",
+  "common.error": "Erreur",
+  "common.retry": "Réessayer",
+  "theme.toggle": "Basculer le thème",
+  "locale.english": "English",
+  "locale.french": "Français"
+}

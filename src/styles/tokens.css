@@ -1,0 +1,83 @@
+/* src\styles\tokens.css */
+
+/* Semantic tokens that read from Prime’s CSS variables */
+:root {
+  /* Colors */
+  --bg: var(--p-surface-0, #ffffff);
+  --card: var(--p-surface-50, #fafafa);
+  --muted: var(--p-surface-100, #f5f5f5);
+  --border: var(--p-surface-200, #e5e7eb);
+
+  --text: var(--p-surface-900, #0f172a);
+  --text-muted: var(--p-surface-600, #4b5563);
+
+  --primary: var(--p-primary-500, #3b82f6);
+  --primary-contrast: var(--p-primary-contrast-color, #ffffff);
+
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-1: 150ms;
+  --duration-2: 250ms;
+  --duration-3: 400ms;
+
+  /* Back-compat for older Prime tokens referenced in your code */
+  --surface-card: var(--card);
+  --surface-ground: var(--bg);
+  --text-color: var(--text);
+}
+
+/* Dark theme overrides (your <html> gets .dark from ThemeProvider) */
+html.dark {
+  --bg: var(--p-surface-900, #0b1220);
+  --card: var(--p-surface-800, #111827);
+  --muted: var(--p-surface-700, #1f2937);
+  --border: var(--p-surface-600, #374151);
+
+  --text: var(--p-surface-0, #f8fafc);
+  --text-muted: var(--p-surface-300, #cbd5e1);
+
+  /* Slightly brighter primary in dark for contrast */
+  --primary: var(--p-primary-400, #60a5fa);
+  --primary-contrast: var(--p-primary-contrast-color, #1f2937);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-1: 0ms;
+    --duration-2: 0ms;
+    --duration-3: 0ms;
+    --ease: linear;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Example utility (optional) */
+.token-card {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--duration-2) var(--ease),
+    transform var(--duration-2) var(--ease);
+}
+.token-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}

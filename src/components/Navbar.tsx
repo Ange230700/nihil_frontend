@@ -4,6 +4,7 @@ import { Menubar } from "primereact/menubar";
 import type { MenuItem } from "primereact/menuitem";
 import { Button } from "primereact/button";
 import useTheme from "@nihil_frontend/hooks/useTheme";
+import LocaleSwitcher from "@nihil_frontend/components/LocaleSwitcher";
 
 // Remove NavbarProps
 type NavbarMenuItem = MenuItem & {
@@ -22,6 +23,7 @@ export default function Navbar() {
 
   const end = (
     <section className="align-items-center flex gap-2">
+      <LocaleSwitcher />
       <Button
         icon={theme === "dark" ? "pi pi-sun" : "pi pi-moon"}
         rounded

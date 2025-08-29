@@ -13,6 +13,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RouterProvider } from "react-router-dom";
 import { router } from "@nihil_frontend/routes/router";
+import { auditThemeContrast } from "@nihil_frontend/a11y/contrast";
+import { I18nProvider } from "@nihil_frontend/providers/I18nProvider";
+
+const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {
@@ -29,19 +35,28 @@ const queryClient = new QueryClient({
   },
 });
 
+if (import.meta.env.DEV) {
+  // wait for theme link injection to resolve computed vars
+  requestAnimationFrame(() => {
+    auditThemeContrast();
+  });
+}
+
 createRoot(rootEl).render(
   <StrictMode>
-    <PrimeReactProvider>
-      <ThemeProvider>
-        <ToastProvider>
-          <QueryClientProvider client={queryClient}>
-            <CsrfBootstrap />
-            <ThemeStyles />
-            <RouterProvider router={router} />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryClientProvider>
-        </ToastProvider>
-      </ThemeProvider>
+    <PrimeReactProvider value={{ ripple: !prefersReducedMotion }}>
+      <I18nProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <QueryClientProvider client={queryClient}>
+              <CsrfBootstrap />
+              <ThemeStyles />
+              <RouterProvider router={router} />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </I18nProvider>
     </PrimeReactProvider>
   </StrictMode>,
 );

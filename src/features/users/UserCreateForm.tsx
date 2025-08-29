@@ -15,11 +15,13 @@ import {
   type UserCreateInput,
 } from "@nihil_frontend/entities/user/validation";
 import { swallow } from "@nihil_frontend/shared/utils/swallow";
+import { useIntl } from "react-intl";
 
 export default function UserCreateForm({
   onCreated,
 }: Readonly<{ onCreated?: () => void }>) {
   const toast = useToast();
+  const intl = useIntl();
   const {
     register,
     handleSubmit,
@@ -34,27 +36,58 @@ export default function UserCreateForm({
   const onSubmit = handleSubmit(async (data) => {
     try {
       await userApi.post("/users", data);
-      toast.show({ severity: "success", summary: "User created!" });
+      toast.show({
+        severity: "success",
+        summary: intl.formatMessage({
+          id: "users.created",
+          defaultMessage: "User created!",
+        }),
+      });
       reset();
       onCreated?.();
     } catch (err: unknown) {
-      // ✅ Safely extract issues (no `any`)
-      const issues =
-        isAxiosError(err) && isServerErrorData(err.response?.data)
-          ? err.response.data.error?.issues
-          : undefined;
+      if (isAxiosError(err)) {
+        const payload: unknown = err.response?.data;
 
-      applyZodIssuesToForm<UserCreateInput>(issues, setError);
+        if (isServerErrorData(payload)) {
+          const issues = payload.error?.issues;
+          applyZodIssuesToForm<UserCreateInput>(issues, setError);
 
-      // ✅ Safe message extraction
-      const message =
-        ((isAxiosError(err) &&
-          isServerErrorData(err.response?.data) &&
-          err.response.data.error?.message) ??
-          (err instanceof Error && err.message)) ||
-        "Request failed";
+          const message =
+            typeof payload.error?.message === "string"
+              ? payload.error.message
+              : intl.formatMessage({
+                  id: "common.requestFailed",
+                  defaultMessage: "Request failed",
+                });
 
-      toast.show({ severity: "error", summary: "Error", detail: message });
+          toast.show({
+            severity: "error",
+            summary: intl.formatMessage({
+              id: "common.error",
+              defaultMessage: "Error",
+            }),
+            detail: message,
+          });
+          return;
+        }
+      }
+
+      const fallbackMessage =
+        (err instanceof Error && err.message) ||
+        intl.formatMessage({
+          id: "common.requestFailed",
+          defaultMessage: "Request failed",
+        });
+
+      toast.show({
+        severity: "error",
+        summary: intl.formatMessage({
+          id: "common.error",
+          defaultMessage: "Error",
+        }),
+        detail: fallbackMessage,
+      });
     }
   });
 
@@ -98,7 +131,14 @@ export default function UserCreateForm({
 
       <Button
         type="submit"
-        label={isSubmitting ? "Adding..." : "Add"}
+        label={
+          isSubmitting
+            ? intl.formatMessage({
+                id: "users.adding",
+                defaultMessage: "Adding...",
+              })
+            : intl.formatMessage({ id: "users.add", defaultMessage: "Add" })
+        }
         disabled={isSubmitting || !isDirty || !isValid}
       />
     </form>

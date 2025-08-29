@@ -4,8 +4,10 @@ import PostCreateForm from "@nihil_frontend/features/posts/PostCreateForm";
 import PostList from "@nihil_frontend/features/posts/PostList";
 import UserCreateForm from "@nihil_frontend/features/users/UserCreateForm";
 import UserList from "@nihil_frontend/features/users/UserList";
+// import { useIntl, FormattedMessage } from "react-intl";
 
 export default function Home() {
+  // const intl = useIntl();
   return (
     <section className="mx-auto mt-4 flex max-w-2xl flex-col gap-8">
       <div>
