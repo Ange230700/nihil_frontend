@@ -1,82 +1,106 @@
 // src\features\users\UserCreateForm.tsx
 
-import { useState } from "react";
+import { isAxiosError } from "axios";
+import { isServerErrorData } from "@nihil_frontend/shared/forms/serverError";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { useToast } from "@nihil_frontend/contexts/ToastContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createUser } from "@nihil_frontend/api/users";
+import { userApi } from "@nihil_frontend/api/api";
+import { Field } from "@nihil_frontend/shared/forms/Field";
+import { applyZodIssuesToForm } from "@nihil_frontend/shared/forms/applyZodIssues";
+import {
+  UserCreateSchema,
+  type UserCreateInput,
+} from "@nihil_frontend/entities/user/validation";
 
-export default function UserCreateForm() {
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+export default function UserCreateForm({
+  onCreated,
+}: Readonly<{ onCreated?: () => void }>) {
   const toast = useToast();
-  const qc = useQueryClient();
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: createUser,
-    onSuccess: async () => {
-      toast.show({ severity: "success", summary: "User created!" });
-      setForm({ username: "", email: "", password: "" });
-      await qc.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: (err: unknown) => {
-      const msg =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message?: unknown }).message)
-          : "Failed";
-      toast.show({ severity: "error", summary: "Error", detail: msg });
-    },
+  const {
+    register,
+    handleSubmit,
+    setError,
+    reset,
+    formState: { errors, isSubmitting, isDirty, isValid },
+  } = useForm<UserCreateInput>({
+    resolver: zodResolver(UserCreateSchema),
+    mode: "onChange",
   });
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  }
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      await userApi.post("/users", data);
+      toast.show({ severity: "success", summary: "User created!" });
+      reset();
+      onCreated?.();
+    } catch (err: unknown) {
+      // ✅ Safely extract issues (no `any`)
+      const issues =
+        isAxiosError(err) && isServerErrorData(err.response?.data)
+          ? err.response.data.error?.issues
+          : undefined;
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    mutate(form);
-  }
+      applyZodIssuesToForm<UserCreateInput>(issues, setError);
+
+      // ✅ Safe message extraction
+      const message =
+        ((isAxiosError(err) &&
+          isServerErrorData(err.response?.data) &&
+          err.response.data.error?.message) ??
+          (err instanceof Error && err.message)) ||
+        "Request failed";
+
+      toast.show({ severity: "error", summary: "Error", detail: message });
+    }
+  });
 
   return (
-    <form className="flex items-end gap-2" onSubmit={handleSubmit}>
-      <span>
-        <label className="block text-sm">
-          Username
-          <InputText
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            required
-          />
-        </label>
-      </span>
-      <span>
-        <label className="block text-sm">
-          Email
-          <InputText
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-        </label>
-      </span>
-      <span>
-        <label className="block text-sm">
-          Password
-          <InputText
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-        </label>
-      </span>
+    <form
+      className="flex flex-wrap items-end gap-3"
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+      noValidate
+    >
+      <Field id="username" label="Username" error={errors.username?.message}>
+        <InputText
+          id="username"
+          aria-invalid={!!errors.username}
+          aria-describedby={errors.username ? "username-error" : undefined}
+          disabled={isSubmitting}
+          {...register("username")}
+        />
+      </Field>
+
+      <Field id="email" label="Email" error={errors.email?.message}>
+        <InputText
+          id="email"
+          type="email"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
+          disabled={isSubmitting}
+          {...register("email")}
+        />
+      </Field>
+
+      <Field id="password" label="Password" error={errors.password?.message}>
+        <InputText
+          id="password"
+          type="password"
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? "password-error" : undefined}
+          disabled={isSubmitting}
+          {...register("password")}
+        />
+      </Field>
+
       <Button
         type="submit"
-        label={isPending ? "Adding..." : "Add"}
-        disabled={isPending}
+        label={isSubmitting ? "Adding..." : "Add"}
+        disabled={isSubmitting || !isDirty || !isValid}
       />
     </form>
   );
