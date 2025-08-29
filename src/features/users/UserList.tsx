@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { userApi } from "@nihil_frontend/api/api";
 import Spinner from "@nihil_frontend/components/Spinner";
 import StateCard from "@nihil_frontend/components/StateCard";
+import Img from "@nihil_frontend/components/Img";
 
 interface UserDTO {
   id: string;
@@ -82,11 +83,18 @@ export default function UserList() {
         {users.map((user) => (
           <li key={user.id} className="flex items-center gap-2 py-2">
             {user.avatarUrl && (
-              <img
-                src={user.avatarUrl}
-                alt={user.username}
-                className="h-8 w-8 rounded-full"
-              />
+              <div
+                style={{ aspectRatio: "16 / 9" }}
+                className="w-full overflow-hidden rounded-xl"
+              >
+                <Img
+                  src={user.avatarUrl}
+                  alt={user.username}
+                  width={32}
+                  height={32}
+                  className="h-full w-full object-cover"
+                />
+              </div>
             )}
             <div>
               <div className="font-semibold">{user.username}</div>

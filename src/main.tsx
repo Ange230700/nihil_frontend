@@ -1,5 +1,17 @@
 // src\main.tsx
 
+import interWoff2Url from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+
+const link = document.createElement("link");
+link.rel = "preload";
+link.as = "font";
+link.type = "font/woff2";
+link.href = interWoff2Url;
+link.crossOrigin = "";
+document.head.appendChild(link);
+
+import "@fontsource-variable/inter/wght.css";
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { PrimeReactProvider } from "primereact/api";

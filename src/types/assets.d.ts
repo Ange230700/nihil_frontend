@@ -1,0 +1,10 @@
+// src\types\assets.d.ts
+
+declare module "*.woff2?url" {
+  const src: string;
+  export default src;
+}
+declare module "*.woff2" {
+  const src: string;
+  export default src;
+}
