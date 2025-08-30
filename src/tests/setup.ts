@@ -3,7 +3,6 @@
 import "@testing-library/jest-dom";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "@nihil_frontend/tests/msw/server";
-import httpAdapter from "axios/lib/adapters/http.js";
 
 // Polyfill matchMedia for components that may read it
 if (!("matchMedia" in window)) {
@@ -39,8 +38,6 @@ if (!("matchMedia" in window)) {
 beforeAll(() => {
   // Intercept requests via Node http/https so MSW can catch them
   // (bypasses XHR in jsdom)
-  // @ts-expect-error - adapter typing is loose here
-  axios.defaults.adapter = httpAdapter;
   server.listen({ onUnhandledRequest: "error" });
 });
 afterEach(() => {
