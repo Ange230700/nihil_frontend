@@ -24,6 +24,7 @@ export function Field({
         <small
           id={errId}
           role="alert"
+          aria-label={label}
           className="block pt-1 text-sm text-red-600"
         >
           {error}

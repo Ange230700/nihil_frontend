@@ -1,4 +1,2 @@
 npx validate-branch-name
 npx lint-staged
-npm run test
-npm run lint

@@ -1,0 +1,14 @@
+set -e
+
+# Optional: skip on tag pushes
+case "$HUSKY_GIT_PARAMS" in
+  *--tags*) exit 0 ;;
+esac
+
+echo "🔎 Running unit tests before push..."
+npm run test:ci
+
+echo "🧹 Linting..."
+npm run lint
+
+echo "✅ Tests passed. Pushing..."
