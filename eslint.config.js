@@ -12,7 +12,7 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default tseslint.config([
-  globalIgnores(["dist", "node_modules", "coverage"]),
+  globalIgnores(["dist", "node_modules", "coverage", "public/themes"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -31,7 +31,7 @@ export default tseslint.config([
         project: ["./tsconfig.node.json", "./tsconfig.app.json"],
         tsconfigRootDir: import.meta.dirname,
       },
-      ecmaVersion: 2020,
+      ecmaVersion: 2024,
       globals: globals.browser,
     },
   },

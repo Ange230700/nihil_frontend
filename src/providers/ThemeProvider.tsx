@@ -30,9 +30,15 @@ export function ThemeProvider({
   const toggle = useCallback(() => {
     setTheme((t) => (t === "light" ? "dark" : "light"));
   }, []);
+  const setThemeExplicit = useCallback((t: Theme) => {
+    setTheme(t);
+  }, []);
 
   // 2) Memoize the context value object so it only changes when theme or toggle change
-  const contextValue = useMemo(() => ({ theme, toggle }), [theme, toggle]);
+  const contextValue = useMemo(
+    () => ({ theme, toggle, setTheme: setThemeExplicit }),
+    [setThemeExplicit, theme, toggle],
+  );
 
   return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }
