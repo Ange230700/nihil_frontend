@@ -9,7 +9,7 @@ import LocaleSwitcher from "@nihil_frontend/components/LocaleSwitcher";
 // Remove NavbarProps
 type NavbarMenuItem = MenuItem & {
   label?: string;
-  icon?: number | string;
+  icon?: string;
   command?: () => void;
 };
 

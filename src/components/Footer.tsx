@@ -19,7 +19,7 @@ export default function Footer() {
         rel="noopener noreferrer"
         className="hover:underline"
       >
-        View code source on GitHub
+        View source on GitHub
       </a>
       <p>&copy; {currentYear} V∅ID. All rights reserved.</p>
     </footer>
