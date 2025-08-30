@@ -10,6 +10,7 @@ import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
 import { VitePWA } from "vite-plugin-pwa";
+import i18nVersionPlugin from "./build/i18nVersionPlugin";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -69,6 +70,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      i18nVersionPlugin({
+        // optional: list files explicitly, else it scans src/i18n/*.json
+        locales: ["src/i18n/en.json", "src/i18n/fr.json"],
+        // virtualId: "virtual:i18n-version",
+        // algo: "sha256",
+      }),
       cspPlugin(),
       tailwindcss(),
       react(),

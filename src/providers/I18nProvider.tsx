@@ -12,6 +12,7 @@ import {
   type Locale,
 } from "@nihil_frontend/i18n/locales";
 import { I18nContext } from "@nihil_frontend/contexts/I18nContext";
+import { I18N_VERSION } from "virtual:i18n-version";
 
 type Messages = Record<string, string>;
 
@@ -26,59 +27,124 @@ const CATALOGS: Record<Locale, () => Promise<Messages>> = {
     }) as unknown as Promise<Messages>,
 };
 
-// Minimal PrimeReact locales (extend later if needed)
+// Minimal PrimeReact locales
 addPRLocale("en", { startsWith: "Starts with", contains: "Contains" });
-addPRLocale("fr", {
-  startsWith: "Commence par",
-  contains: "Contient",
-});
+addPRLocale("fr", { startsWith: "Commence par", contains: "Contient" });
 
+/* -------------------- cache helpers -------------------- */
+const STORAGE_VERSION_KEY = "i18n:version";
+const STORAGE_MSGS_PREFIX = "i18n:messages:"; // + locale
+
+function getCacheKey(locale: Locale) {
+  return `${STORAGE_MSGS_PREFIX}${locale}`;
+}
+
+function ensureCacheVersion() {
+  try {
+    const v = localStorage.getItem(STORAGE_VERSION_KEY);
+    if (v !== I18N_VERSION) {
+      // purge old message caches
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(STORAGE_MSGS_PREFIX)) {
+          localStorage.removeItem(k);
+        }
+      }
+      localStorage.setItem(STORAGE_VERSION_KEY, I18N_VERSION);
+    }
+  } catch {
+    // ignore (private mode / SSR)
+  }
+}
+
+function readCachedMessages(locale: Locale): Messages | null {
+  try {
+    const raw = localStorage.getItem(getCacheKey(locale));
+    return raw ? (JSON.parse(raw) as Messages) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedMessages(locale: Locale, msgs: Messages) {
+  try {
+    localStorage.setItem(getCacheKey(locale), JSON.stringify(msgs));
+  } catch {
+    // quota/full; ignore
+  }
+}
+
+/* -------------------- locale detection -------------------- */
 function detectLocale(): Locale {
-  const stored = localStorage.getItem("locale");
-  if (stored && SUPPORTED_LOCALES.includes(stored as Locale))
-    return stored as Locale;
+  try {
+    const stored = localStorage.getItem("locale");
+    if (stored && SUPPORTED_LOCALES.includes(stored as Locale))
+      return stored as Locale;
+  } catch {
+    /* ignore */
+  }
+
   const nav = navigator.language.toLowerCase();
   if (nav.startsWith("fr")) return "fr";
   return DEFAULT_LOCALE;
 }
 
+/* -------------------- provider -------------------- */
 export function I18nProvider({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const [locale, setLocale] = useState<Locale>(detectLocale);
-  const [messages, setMessages] = useState<Messages>({});
 
-  // wrapper that persists to localStorage
+  // seed messages from cache synchronously to avoid initial flash
+  const [messages, setMessages] = useState<Messages>(() => {
+    try {
+      ensureCacheVersion();
+    } catch {
+      // ignore (private mode / SSR)
+    }
+    return readCachedMessages(locale) ?? {};
+  });
+
   const changeLocale = useCallback((l: Locale) => {
     setLocale(l);
-    localStorage.setItem("locale", l);
+    try {
+      localStorage.setItem("locale", l);
+    } catch {
+      // quota/full; ignore
+    }
   }, []);
 
-  // Load catalog + sync PrimeReact locale on change
   useEffect(() => {
-    let cancelled = false;
+    // ensure version & hydrate from cache immediately (if changed locales)
+    ensureCacheVersion();
+    const cached = readCachedMessages(locale);
+    if (cached) setMessages(cached);
 
-    const load = async () => {
+    // then fetch fresh (code-split import) and update cache
+    (async () => {
       try {
         const mod = await CATALOGS[locale]();
-        if (!cancelled) setMessages(mod);
+        setMessages(mod);
+        writeCachedMessages(locale, mod);
       } catch (err) {
         console.error("🔴 Failed to load i18n catalog:", err);
-        if (!cancelled && locale !== DEFAULT_LOCALE) {
+        if (locale !== DEFAULT_LOCALE) {
           try {
-            await CATALOGS[DEFAULT_LOCALE]();
+            const fb = await CATALOGS[DEFAULT_LOCALE]();
+            setMessages(fb);
+            writeCachedMessages(DEFAULT_LOCALE, fb);
           } catch (err2) {
             console.error("🔴 Failed to load fallback i18n catalog:", err2);
           }
         }
       }
-    };
+    })().catch((err: unknown) => {
+      console.error("🔴 Failed to load i18n catalog:", err);
+    });
 
-    void load(); // satisfies no-floating-promises
     setPRLocale(locale);
-
     return () => {
-      cancelled = true;
+      // noop
     };
   }, [locale]);
 
@@ -87,7 +153,7 @@ export function I18nProvider({
     [locale, changeLocale],
   );
 
-  if (Object.keys(messages).length === 0) return null; // first load flash-free
+  if (Object.keys(messages).length === 0) return null; // flash-free first load
 
   return (
     <I18nContext value={ctx}>
