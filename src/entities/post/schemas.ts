@@ -9,12 +9,10 @@ export const PostDTOSchema = z.object({
   mediaUrl: z.string().nullable().optional(),
   createdAt: z.string().optional(),
 });
+export type PostDTO = z.infer<typeof PostDTOSchema>;
 
 export const PostsPageSchema = z.object({
   items: z.array(PostDTOSchema),
   nextCursor: z.string().nullable(),
 });
-
-// ✅ Types stay in lockstep with the schema
-export type PostDTO = z.infer<typeof PostDTOSchema>;
 export type PostsPage = z.infer<typeof PostsPageSchema>;

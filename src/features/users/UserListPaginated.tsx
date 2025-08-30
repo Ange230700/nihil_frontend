@@ -1,4 +1,4 @@
-// src\features\posts\PostListPaginated.tsx
+// src\features\users\UserListPaginated.tsx
 
 import { useMemo, useState, type ReactNode } from "react";
 import { InputText } from "primereact/inputtext";
@@ -6,12 +6,13 @@ import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { Skeleton } from "primereact/skeleton";
 import { useDebouncedValue } from "@nihil_frontend/shared/hooks/useDebouncedValue";
-import { usePosts } from "@nihil_frontend/entities/post/hooks";
+import { useUsers } from "@nihil_frontend/entities/user/hooks";
+import Img from "@nihil_frontend/components/Img";
 
 const PAGE_SIZES = [5, 10, 20] as const;
 type PageSize = (typeof PAGE_SIZES)[number];
 
-export default function PostListPaginated() {
+export default function UserListPaginated() {
   const [search, setSearch] = useState("");
   const debounced = useDebouncedValue(search, 300);
 
@@ -29,7 +30,7 @@ export default function PostListPaginated() {
     setCursorStack([]);
   };
 
-  const { data, isLoading, isFetching, isError, refetch } = usePosts({
+  const { data, isLoading, isFetching, isError, refetch } = useUsers({
     limit,
     cursor,
     q: debounced,
@@ -70,7 +71,7 @@ export default function PostListPaginated() {
   } else if (isError) {
     content = (
       <div className="text-red-500">
-        Failed to load posts.{" "}
+        Failed to load users.{" "}
         <button
           type="button"
           onClick={() => void refetch()}
@@ -88,12 +89,28 @@ export default function PostListPaginated() {
         className="divide-y transition-opacity"
         style={{ opacity: isFetching ? 0.6 : 1 }}
       >
-        {items.map((p) => (
-          <li key={p.id} className="py-2">
-            <div>{p.content}</div>
-            {p.createdAt && (
-              <div className="text-xs text-gray-500">{p.createdAt}</div>
-            )}
+        {items.map((u) => (
+          <li key={u.id} className="flex items-center gap-3 py-2">
+            {u.avatarUrl ? (
+              <div
+                style={{ aspectRatio: "1 / 1" }}
+                className="h-8 w-8 overflow-hidden rounded-full"
+              >
+                <Img
+                  src={u.avatarUrl}
+                  alt={u.username}
+                  width={32}
+                  height={32}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : null}
+            <div className="min-w-0">
+              <div className="truncate font-semibold">
+                {u.displayName ?? u.username}
+              </div>
+              <div className="truncate text-sm text-gray-500">{u.email}</div>
+            </div>
           </li>
         ))}
       </ul>
@@ -117,7 +134,7 @@ export default function PostListPaginated() {
                   void refetch();
                 }
               }}
-              placeholder="Search posts…"
+              placeholder="Search users…"
               className="min-w-[16rem]"
             />
           </label>

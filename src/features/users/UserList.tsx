@@ -1,91 +1,53 @@
 // src\features\users\UserList.tsx
 
-import { useCallback, useEffect, useState } from "react";
-import { userApi } from "@nihil_frontend/api/api";
+import { useQuery } from "@tanstack/react-query";
 import Spinner from "@nihil_frontend/components/Spinner";
 import StateCard from "@nihil_frontend/components/StateCard";
 import Img from "@nihil_frontend/components/Img";
-
-interface UserDTO {
-  id: string;
-  username: string;
-  email: string;
-  displayName?: string;
-  avatarUrl?: string;
-}
+import { fetchAllUsers } from "@nihil_frontend/entities/user/api";
 
 export default function UserList() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["users", "list"],
+    queryFn: fetchAllUsers,
+    staleTime: 30_000,
+  });
 
-  const load = useCallback((): void => {
-    setError(null);
-    setLoading(true);
+  if (isLoading) return <Spinner />;
 
-    userApi
-      .get<{ data: UserDTO[] }>("/users")
-      .then((res) => {
-        setUsers(res.data.data);
-      })
-      .catch((e: unknown) => {
-        let message = "Network error";
-        if (e instanceof Error) {
-          message = e.message;
-        } else if (
-          typeof e === "object" &&
-          e !== null &&
-          "message" in e &&
-          typeof (e as { message?: unknown }).message === "string"
-        ) {
-          message = (e as { message: string }).message;
-        }
-        setUsers([]);
-        setError(message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  if (loading) return <Spinner />;
-
-  if (error)
+  if (isError)
     return (
       <StateCard
         title="Couldn’t load users"
-        description={error}
+        description={error instanceof Error ? error.message : "Request failed"}
         icon="pi pi-cloud-off"
-        onRetry={load}
+        onRetry={() => void refetch()}
         retryLabel="Retry"
       />
     );
 
+  const users = data ?? [];
   if (!users.length)
     return (
       <StateCard
         title="No users yet"
         description="There are no users to show. Try creating one, then refresh."
         icon="pi pi-users"
-        onRetry={load}
+        onRetry={() => void refetch()}
         retryLabel="Refresh"
       />
     );
 
   return (
-    <div>
+    <div style={{ opacity: isFetching ? 0.7 : 1 }}>
       <h2 className="mb-2 text-lg font-bold">Users</h2>
       <ul className="divide-y">
         {users.map((user) => (
           <li key={user.id} className="flex items-center gap-2 py-2">
             {user.avatarUrl && (
               <div
-                style={{ aspectRatio: "16 / 9" }}
-                className="w-full overflow-hidden rounded-xl"
+                style={{ aspectRatio: "1 / 1" }}
+                className="h-8 w-8 overflow-hidden rounded-full"
               >
                 <Img
                   src={user.avatarUrl}
@@ -103,9 +65,12 @@ export default function UserList() {
           </li>
         ))}
       </ul>
-      {/* Optional manual refresh */}
       <div className="mt-3">
-        <button type="button" className="text-sm underline" onClick={load}>
+        <button
+          type="button"
+          className="text-sm underline"
+          onClick={() => void refetch()}
+        >
           Refresh
         </button>
       </div>

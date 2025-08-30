@@ -1,11 +1,12 @@
 // src\pwa\PWAStatus.tsx
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useToast } from "@nihil_frontend/contexts/ToastContext";
 
 export default function PWAStatus() {
   const toast = useToast();
+  const intervalRef = useRef<number | null>(null);
 
   const {
     offlineReady, // boolean | undefined
@@ -14,16 +15,15 @@ export default function PWAStatus() {
   } = useRegisterSW({
     onRegisteredSW(_url, reg) {
       // keep the SW fresh in background
-      if (reg)
-        setInterval(
-          () => {
-            // Handle the promise to satisfy no-floating-promises
-            reg.update().catch((err: unknown) => {
-              console.error("SW background update failed", err);
-            });
-          },
-          60 * 60 * 1000,
-        );
+      if (!reg || intervalRef.current != null) return;
+      intervalRef.current = window.setInterval(
+        () => {
+          reg.update().catch((err: unknown) => {
+            console.error("SW background update failed", err);
+          });
+        },
+        60 * 60 * 1000,
+      );
     },
     onRegisterError(err) {
       // non-fatal: just log

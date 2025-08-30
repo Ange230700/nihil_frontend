@@ -1,82 +1,44 @@
 // src\features\posts\PostList.tsx
 
-import { useCallback, useEffect, useState } from "react";
-import { postApi } from "@nihil_frontend/api/api";
+import { useQuery } from "@tanstack/react-query";
 import Spinner from "@nihil_frontend/components/Spinner";
 import StateCard from "@nihil_frontend/components/StateCard";
-
-interface PostDTO {
-  id: string;
-  userId: string;
-  content: string;
-  mediaUrl?: string | null;
-  createdAt?: string;
-}
+import { fetchAllPosts } from "@nihil_frontend/entities/post/api";
 
 export default function PostList() {
-  const [posts, setPosts] = useState<PostDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["posts", "listAll"],
+    queryFn: fetchAllPosts,
+    staleTime: 30_000,
+  });
 
-  const load = useCallback((): void => {
-    setError(null);
-    setLoading(true);
+  if (isLoading) return <Spinner />;
 
-    postApi
-      .get<{ status: string; data: PostDTO[] }>("/posts")
-      .then((res) => {
-        setPosts(res.data.data);
-      })
-      .catch((e: unknown) => {
-        let message = "Network error";
-        if (e instanceof Error) {
-          message = e.message;
-        } else if (
-          typeof e === "object" &&
-          e !== null &&
-          "message" in e &&
-          typeof (e as { message?: unknown }).message === "string"
-        ) {
-          message = (e as { message: string }).message;
-        }
-        setPosts([]);
-        setError(message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  if (loading) return <Spinner />;
-
-  if (error)
+  if (isError)
     return (
       <StateCard
         title="Couldn’t load posts"
-        description={error}
+        description={error instanceof Error ? error.message : "Request failed"}
         icon="pi pi-cloud-off"
-        onRetry={load}
+        onRetry={() => void refetch()}
         retryLabel="Retry"
       />
     );
 
+  const posts = data ?? [];
   if (!posts.length)
     return (
       <StateCard
         title="No posts yet"
         description="Create the first post to see it here."
         icon="pi pi-comments"
-        onRetry={load}
+        onRetry={() => void refetch()}
         retryLabel="Refresh"
       />
     );
 
   return (
-    <div>
+    <div style={{ opacity: isFetching ? 0.7 : 1 }}>
       <h2 className="mb-2 text-lg font-bold">Posts</h2>
       <ul className="divide-y">
         {posts.map((post) => (
@@ -89,7 +51,11 @@ export default function PostList() {
         ))}
       </ul>
       <div className="mt-3">
-        <button type="button" className="text-sm underline" onClick={load}>
+        <button
+          type="button"
+          className="text-sm underline"
+          onClick={() => void refetch()}
+        >
           Refresh
         </button>
       </div>

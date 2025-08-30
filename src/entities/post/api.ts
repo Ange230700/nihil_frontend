@@ -2,22 +2,12 @@
 
 import { postApi } from "@nihil_frontend/api/api";
 import {
+  PostDTOSchema,
   PostsPageSchema,
+  type PostDTO,
   type PostsPage,
 } from "@nihil_frontend/entities/post/schemas";
-
-interface ApiEnvelope<T> {
-  status: "success" | "error";
-  data: T;
-}
-
-function isEnvelope(x: unknown): x is ApiEnvelope<unknown> {
-  return (
-    typeof x === "object" &&
-    x !== null &&
-    "data" in (x as Record<string, unknown>)
-  );
-}
+import { unwrapData } from "@nihil_frontend/shared/api/unwrap";
 
 export async function fetchPosts(params: {
   limit: number;
@@ -31,13 +21,11 @@ export async function fetchPosts(params: {
   if (params.q) usp.set("q", params.q);
   if (params.userId) usp.set("userId", params.userId);
 
-  // Tell axios we expect an unknown payload so nothing is 'any'
   const resp = await postApi.get<unknown>(`/posts?${usp.toString()}`);
+  return PostsPageSchema.parse(unwrapData(resp.data));
+}
 
-  // Unwrap { status, data } if your backend wraps responses
-  const payload = isEnvelope(resp.data) ? resp.data.data : resp.data;
-
-  // ✅ Runtime validation + type inference
-  const parsed = PostsPageSchema.parse(payload);
-  return parsed;
+export async function fetchAllPosts(): Promise<PostDTO[]> {
+  const resp = await postApi.get<unknown>("/posts");
+  return PostDTOSchema.array().parse(unwrapData(resp.data));
 }

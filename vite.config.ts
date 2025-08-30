@@ -33,15 +33,34 @@ export default defineConfig({
         icons: [
           { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
           { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "/pwa-512x512-maskable.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-        navigateFallback: "/index.html", // SPA fallback
+        navigateFallback: "/index.html",
         runtimeCaching: [
-          // Cache API reads for demo/offline
           {
-            urlPattern: /^https?:\/\/localhost:300[12]\/api\/.*$/i,
+            // function receives {url, event, request}
+            urlPattern: ({ url }) => {
+              // only match API calls
+              if (!/\/api\/.+/.test(url.pathname)) return false;
+
+              // allowed hosts
+              const allowed = [
+                "localhost:3001",
+                "localhost:3002",
+                new URL(process.env.VITE_USER_SERVICE_API_URL ?? "").host,
+                new URL(process.env.VITE_POST_SERVICE_API_URL ?? "").host,
+              ].filter(Boolean);
+
+              return allowed.includes(url.host);
+            },
             handler: "NetworkFirst",
             options: {
               cacheName: "nihil-api",
@@ -62,7 +81,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: [],
+    setupFiles: ["./src/tests/setup.ts"],
     coverage: {
       reporter: ["text", "html"],
     },
