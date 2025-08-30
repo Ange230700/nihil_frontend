@@ -22,13 +22,14 @@ import { ThemeProvider } from "@nihil_frontend/providers/ThemeProvider.tsx";
 import { ToastProvider } from "@nihil_frontend/providers/ToastProvider.tsx";
 import CsrfBootstrap from "@nihil_frontend/app/bootstrap/CsrfBootstrap";
 import SessionExpiredListener from "@nihil_frontend/app/bootstrap/SessionExpiredListener";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RouterProvider } from "react-router-dom";
 import { router } from "@nihil_frontend/routes/router";
 import { auditThemeContrast } from "@nihil_frontend/a11y/contrast";
 import { I18nProvider } from "@nihil_frontend/providers/I18nProvider";
 import "@nihil_frontend/shared/config/env";
+import { makeQueryClient } from "@nihil_frontend/lib/queryClient";
 
 const prefersReducedMotion =
   typeof window !== "undefined" &&
@@ -39,15 +40,7 @@ if (!rootEl) {
   throw new Error("Root element not found");
 }
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = makeQueryClient();
 
 if (import.meta.env.DEV) {
   // wait for theme link injection to resolve computed vars

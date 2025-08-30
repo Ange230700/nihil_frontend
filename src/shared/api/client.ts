@@ -61,6 +61,11 @@ async function doRefresh(userServiceBaseUrl: string, client: AxiosInstance) {
   }
 }
 
+function isAuthPath(url?: string): boolean {
+  if (!url) return false;
+  return /\/auth\/(refresh|login|signin)(\?|$)/.test(url);
+}
+
 /**
  * Create an axios instance with:
  *  - withCredentials
@@ -89,6 +94,14 @@ export function createApi(
       const original = (error.config ?? {}) as InternalAxiosRequestConfig & {
         _retried?: boolean;
       };
+      const url = original.baseURL
+        ? new URL(original.url ?? "", original.baseURL).href
+        : (original.url ?? "");
+
+      if (status === 401 && isAuthPath(url)) {
+        // Don’t try to refresh or emit; just throw.
+        throw error;
+      }
 
       if (status !== 401 || original._retried) {
         throw error;
