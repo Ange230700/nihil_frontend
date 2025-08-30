@@ -118,7 +118,7 @@ export default function PostListPaginated() {
                 }
               }}
               placeholder="Search posts…"
-              className="min-w-[16rem]"
+              className="min-w-[16rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
             />
           </label>
         </span>
@@ -141,11 +141,13 @@ export default function PostListPaginated() {
             onClick={goPrev}
             disabled={!cursorStack.length || isFetching}
             outlined
+            className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
           />
           <Button
             label="Next"
             onClick={goNext}
             disabled={!nextCursor || isFetching}
+            className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
           />
         </div>
       </div>

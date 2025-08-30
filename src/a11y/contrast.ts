@@ -40,6 +40,7 @@ export function auditThemeContrast(
     ["--text-muted", "--bg", "Muted text on Background"],
     ["--primary-contrast", "--primary", "Primary contrast on Primary"],
     ["--text", "--card", "Text on Card"],
+    ["--focus", "--bg", "Focus ring on Background"],
   ],
 ) {
   const cs = getComputedStyle(document.documentElement);

@@ -71,6 +71,7 @@ export default function PostCreateForm({
           aria-describedby={errors.userId ? "userId-error" : undefined}
           disabled={isSubmitting}
           {...register("userId")}
+          className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       </Field>
 
@@ -81,6 +82,7 @@ export default function PostCreateForm({
           aria-describedby={errors.content ? "content-error" : undefined}
           disabled={isSubmitting}
           {...register("content")}
+          className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       </Field>
 
@@ -88,6 +90,7 @@ export default function PostCreateForm({
         type="submit"
         label={isSubmitting ? "Posting..." : "Post"}
         disabled={isSubmitting || !isDirty || !isValid}
+        className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
       />
     </form>
   );

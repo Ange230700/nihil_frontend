@@ -7,3 +7,49 @@
     "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
 }
+
+/* All tabbable controls get a visible outline when keyboard-focused */
+:where(
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):where(:not([disabled])):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Make tiny, icon-only, and circular controls a bit more offset */
+:where(
+  button[aria-label],
+  .p-button,
+  .p-menubar .p-menuitem-link
+):focus-visible {
+  outline-offset: 3px;
+}
+
+/* High Contrast Mode (Windows) – let the OS pick a strong color */
+@media (forced-colors: active) {
+  :where(
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+.focus-ring {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

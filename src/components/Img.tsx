@@ -27,7 +27,7 @@ export default function Img({
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       // aspect-ratio is set implicitly by width/height, this just mirrors it in CSS
-      style={{ aspectRatio: width / height }}
+      style={{ aspectRatio: `${String(width)} / ${String(height)}` }}
       className={className}
       // Chrome hint: only for the single hero image above the fold
       {...(priority ? { fetchpriority: "high" } : {})}

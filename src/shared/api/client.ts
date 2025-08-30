@@ -8,6 +8,7 @@ import axios, {
 } from "axios";
 import { getCookie } from "@nihil_frontend/shared/api/cookies";
 import { CSRF_HEADER } from "@nihil_frontend/shared/api/csrf";
+import { emitAuthSessionExpired } from "@nihil_frontend/shared/auth/events";
 
 declare module "axios" {
   export interface AxiosRequestConfig {
@@ -51,6 +52,10 @@ async function doRefresh(userServiceBaseUrl: string, client: AxiosInstance) {
       withCredentials: true,
       headers: token ? AxiosHeaders.from({ [CSRF_HEADER]: token }) : undefined,
     });
+  } catch (e) {
+    // 🔔 Tell the app that the session is gone
+    emitAuthSessionExpired({ reason: "refresh_failed", error: e });
+    throw e;
   } finally {
     onRefreshed();
   }

@@ -104,6 +104,7 @@ export default function UserCreateForm({
           aria-describedby={errors.username ? "username-error" : undefined}
           disabled={isSubmitting}
           {...register("username")}
+          className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       </Field>
 
@@ -115,6 +116,7 @@ export default function UserCreateForm({
           aria-describedby={errors.email ? "email-error" : undefined}
           disabled={isSubmitting}
           {...register("email")}
+          className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       </Field>
 
@@ -126,6 +128,7 @@ export default function UserCreateForm({
           aria-describedby={errors.password ? "password-error" : undefined}
           disabled={isSubmitting}
           {...register("password")}
+          className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       </Field>
 
@@ -140,6 +143,7 @@ export default function UserCreateForm({
             : intl.formatMessage({ id: "users.add", defaultMessage: "Add" })
         }
         disabled={isSubmitting || !isDirty || !isValid}
+        className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
       />
     </form>
   );

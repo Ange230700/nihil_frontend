@@ -45,7 +45,7 @@ export default function StateCard({
           label={retryLabel}
           icon="pi pi-refresh"
           onClick={onRetry}
-          className="mt-2"
+          className="mt-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
         />
       ) : null}
     </output>

@@ -10,5 +10,11 @@ export default function PrefetchLink({
   ...props
 }: PrefetchLinkProps) {
   const hover = prefetch ? prefetchOnHover<HTMLAnchorElement>(prefetch) : {};
-  return <Link {...props} {...hover} />;
+  return (
+    <Link
+      {...props}
+      {...hover}
+      className="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+    />
+  );
 }
