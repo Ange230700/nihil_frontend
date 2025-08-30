@@ -1,5 +1,7 @@
 // src\tests\msw\fixtures\posts.ts
 
+import { faker } from "@nihil_frontend/tests/utils/faker";
+
 export interface Post {
   id: string;
   userId: string;
@@ -7,13 +9,20 @@ export interface Post {
   createdAt: string;
 }
 
+// Stable, increasing timestamps for predictable ordering
+const START = new Date("2025-01-01T00:00:00.000Z");
+
 export const POSTS: Post[] = Array.from({ length: 50 }, (_, i) => ({
   id: `p${String(i + 1).padStart(2, "0")}`,
-  userId: `u${String((i % 5) + 1)}`,
-  content: `Post #${String(i + 1).padStart(2, "0")}`,
-  createdAt: new Date(2025, 0, 1, i).toISOString(),
+  userId: `u${String((i % 5) + 1).padStart(2, "0")}`,
+  // Realistic but deterministic content
+  content: faker.lorem.sentence({ min: 3, max: 9 }),
+  createdAt: new Date(START.getTime() + i * 60_000).toISOString(), // +1 min each
 }));
 
+/**
+ * Simple, deterministic pagination & search by substring in content.
+ */
 export function querySlice(params: {
   q?: string | null;
   limit: number;
@@ -33,3 +42,20 @@ export function querySlice(params: {
 
   return { items, nextCursor };
 }
+
+/**
+ * Export a guaranteed search token + the matching post
+ * (so tests don’t rely on hard-coded “Post #23”).
+ */
+export const POSTS_SEARCH_FIX = (() => {
+  const index = 22; // 0-based => the 23rd post
+  const target = POSTS[index];
+  // Pick a safe token that surely exists in content
+  const token = target.content.split(/\s+/)[0].replace(/[^\w]/g, "");
+  return {
+    index,
+    token,
+    expectedId: target.id,
+    expectedContent: target.content,
+  };
+})();

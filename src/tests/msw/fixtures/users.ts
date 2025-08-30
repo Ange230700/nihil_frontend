@@ -1,5 +1,7 @@
 // src\tests\msw\fixtures\users.ts
 
+import { faker } from "@nihil_frontend/tests/utils/faker";
+
 export interface User {
   id: string;
   username: string;
@@ -8,11 +10,18 @@ export interface User {
   avatarUrl?: string;
 }
 
-export const USERS: User[] = Array.from({ length: 42 }, (_, i) => ({
-  id: `u${String(i + 1).padStart(2, "0")}`,
-  username: `user_${String(i + 1).padStart(2, "0")}`,
-  email: `user_${String(i + 1).padStart(2, "0")}@example.com`,
-}));
+export const USERS: User[] = Array.from({ length: 42 }, (_, i) => {
+  const username = faker.internet.username().toLowerCase().replace(/\./g, "_");
+  return {
+    id: `u${String(i + 1).padStart(2, "0")}`,
+    username,
+    email: faker.internet
+      .email({ firstName: username, provider: "example.com" })
+      .toLowerCase(),
+    displayName: faker.person.fullName(),
+    avatarUrl: faker.image.avatar(),
+  };
+});
 
 export function querySlice(params: {
   q?: string | null;
@@ -37,3 +46,17 @@ export function querySlice(params: {
 
   return { items, nextCursor };
 }
+
+// Optional helper for user-search tests, if you add some later:
+export const USERS_SEARCH_FIX = (() => {
+  const index = 5;
+  const target = USERS[index];
+  const token = target.username.slice(0, 4); // short safe token
+  return {
+    index,
+    token,
+    expectedId: target.id,
+    expectedUsername: target.username,
+    expectedEmail: target.email,
+  };
+})();
