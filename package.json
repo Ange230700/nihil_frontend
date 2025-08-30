@@ -13,7 +13,7 @@
     "commit": "git-cz",
     "commitlint": "commitlint --edit",
     "test": "vitest --coverage",
-    "test:ci": "vitest run --reporter=dot --changed",
+    "test:ci": "vitest run --reporter=dot --changed  --coverage",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
