@@ -30,9 +30,7 @@ describe("PostListPaginated - paging & keepPreviousData", () => {
     expect(screen.getByText(firstContent)).toBeInTheDocument();
 
     // The list fades during fetch (opacity ~0.6). Assert style changed.
-    const opacity = parseFloat(getComputedStyle(list).opacity);
-    expect(opacity).toBeGreaterThan(0);
-    expect(opacity).toBeLessThan(1);
+    expect(list).toHaveStyle({ opacity: "0.6" });
 
     // When the next page arrives, first visible becomes item #11 (index 10)
     const page2First = await screen.findByText(page2FirstContent);
