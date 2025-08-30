@@ -5,14 +5,14 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-type Opts = {
+interface Opts {
   /** Relative to repo root; defaults to all .json in src/i18n */
   locales?: string[];
   /** Virtual id to import from */
   virtualId?: string;
   /** Hash algorithm */
   algo?: "sha256" | "sha1" | "md5";
-};
+}
 
 export default function i18nVersionPlugin(opts: Opts = {}): Plugin {
   const virtualId = opts.virtualId ?? "virtual:i18n-version";
@@ -82,7 +82,7 @@ export default I18N_VERSION;`;
       return null;
     },
 
-    async handleHotUpdate(ctx) {
+    handleHotUpdate(ctx) {
       const watchedAbs = localeFiles().map((rel) =>
         path.resolve(ctx.server.config.root, rel),
       );
