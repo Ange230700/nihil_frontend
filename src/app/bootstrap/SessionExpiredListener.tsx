@@ -54,7 +54,9 @@ export default function SessionExpiredListener() {
 
       // Redirect to login (preserve where we came from)
       const from = location.pathname + location.search + location.hash;
-      void navigate("/login", { replace: true, state: { from } });
+      void Promise.resolve(
+        navigate("/login", { replace: true, state: { from } }),
+      );
 
       // allow future events after a small cooldown
       setTimeout(() => {

@@ -10,10 +10,10 @@ export interface User {
   avatarUrl?: string;
 }
 
-export const USERS: User[] = Array.from({ length: 42 }, (_, i) => {
+export const USERS: User[] = Array.from({ length: 42 }, () => {
   const username = faker.internet.username().toLowerCase().replace(/\./g, "_");
   return {
-    id: `u${String(i + 1).padStart(2, "0")}`,
+    id: faker.string.uuid(),
     username,
     email: faker.internet
       .email({ firstName: username, provider: "example.com" })

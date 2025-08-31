@@ -1,5 +1,6 @@
 // src\tests\msw\users-handlers.ts
 
+import { faker } from "@nihil_frontend/tests/utils/faker";
 import { http, HttpResponse, delay } from "msw";
 import { USERS, querySlice } from "./fixtures/users";
 
@@ -31,7 +32,7 @@ export const userHandlers = [
       email: string;
       password: string;
     };
-    const id = `u${String(USERS.length + 1).padStart(2, "0")}`;
+    const id = faker.string.uuid(); // realistic backend-style UUID
     const user = { id, username: body.username, email: body.email };
     USERS.unshift(user);
     return HttpResponse.json({ data: user }, { status: 201 });

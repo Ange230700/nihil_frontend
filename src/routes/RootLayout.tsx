@@ -3,7 +3,6 @@
 import { Outlet, ScrollRestoration } from "react-router-dom";
 import Header from "@nihil_frontend/components/Header";
 import Footer from "@nihil_frontend/components/Footer";
-// import { lazyWithPreload } from "@nihil_frontend/shared/lazy";
 
 export default function RootLayout() {
   return (

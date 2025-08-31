@@ -1,5 +1,6 @@
 // src\tests\msw\posts-handlers.ts
 
+import { faker } from "@nihil_frontend/tests/utils/faker";
 import { http, HttpResponse, delay } from "msw";
 import { POSTS, querySlice } from "./fixtures/posts";
 
@@ -36,7 +37,7 @@ export const postHandlers = [
   // POST /posts => create
   http.post(/\/posts$/, async ({ request }) => {
     const body = (await request.json()) as { userId: string; content: string };
-    const newId = `p${String(POSTS.length + 1).padStart(2, "0")}`;
+    const newId = faker.string.uuid();
     const post = {
       id: newId,
       userId: body.userId,

@@ -1,6 +1,5 @@
 // src\components\Img.tsx
 
-// src/components/Img.tsx
 interface ImgProps {
   src: string;
   alt: string;

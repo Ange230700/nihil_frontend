@@ -1,7 +1,5 @@
 // src\components\Footer.tsx
 
-// import { FormattedMessage } from "react-intl";
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (

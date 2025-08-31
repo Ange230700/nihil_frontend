@@ -9,15 +9,37 @@ export interface Post {
   createdAt: string;
 }
 
-// Stable, increasing timestamps for predictable ordering
-const START = new Date("2025-01-01T00:00:00.000Z");
+// Stable reference date to keep runs deterministic with seeded faker
+const REF_DATE = "2025-01-01T00:00:00.000Z";
+
+// Create a small, stable pool of user UUIDs
+const USER_IDS = Array.from({ length: 5 }, () => faker.string.uuid());
+
+/**
+ * Build ascending timestamps with fakerized gaps.
+ * Because faker is seeded (via your utils), this stays deterministic.
+ */
+function buildAscendingIsoDates(count: number): string[] {
+  let cursor = faker.date.past({ years: 0.1, refDate: REF_DATE }).getTime();
+  const dates: string[] = [];
+
+  for (let i = 0; i < count; i += 1) {
+    // Add a random gap (10s to 3min) to keep order but vary spacing
+    const delta = faker.number.int({ min: 10_000, max: 180_000 });
+    cursor += delta;
+    dates.push(new Date(cursor).toISOString());
+  }
+
+  return dates;
+}
+
+const CREATED_ATS = buildAscendingIsoDates(50);
 
 export const POSTS: Post[] = Array.from({ length: 50 }, (_, i) => ({
-  id: `p${String(i + 1).padStart(2, "0")}`,
-  userId: `u${String((i % 5) + 1).padStart(2, "0")}`,
-  // Realistic but deterministic content
-  content: faker.lorem.sentence({ min: 3, max: 9 }),
-  createdAt: new Date(START.getTime() + i * 60_000).toISOString(), // +1 min each
+  id: faker.string.uuid(), // fakerized UUID
+  userId: USER_IDS[i % USER_IDS.length], // stable cycling across 5 UUIDs
+  content: faker.lorem.sentence({ min: 3, max: 9 }), // deterministic with seeded faker
+  createdAt: CREATED_ATS[i], // ascending, randomized gaps
 }));
 
 /**
