@@ -11,7 +11,7 @@ import { POSTS, querySlice } from "./fixtures/posts";
  */
 export const postHandlers = [
   // GET /posts (paginated & non-paginated)
-  http.get(/\/posts$/, async ({ request }) => {
+  http.get("*/posts", async ({ request }) => {
     // MSW v2: parse from the Request
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get("limit");
@@ -35,7 +35,7 @@ export const postHandlers = [
   }),
 
   // POST /posts => create
-  http.post(/\/posts$/, async ({ request }) => {
+  http.post("*/posts", async ({ request }) => {
     const body = (await request.json()) as { userId: string; content: string };
     const newId = faker.string.uuid();
     const post = {

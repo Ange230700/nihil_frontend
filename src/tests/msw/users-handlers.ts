@@ -6,7 +6,7 @@ import { USERS, querySlice } from "./fixtures/users";
 
 export const userHandlers = [
   // GET /users (paginated & non-paginated)
-  http.get(/\/users$/, async ({ request }) => {
+  http.get("*/users", async ({ request }) => {
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get("limit");
 
@@ -26,7 +26,7 @@ export const userHandlers = [
   }),
 
   // POST /users → create (kept minimal)
-  http.post(/\/users$/, async ({ request }) => {
+  http.post("*/users", async ({ request }) => {
     const body = (await request.json()) as {
       username: string;
       email: string;

@@ -8,5 +8,6 @@ import { http, HttpResponse } from "msw";
  */
 export const defaultHandlers = [
   // Accept any origin + both '/auth/csrf' and '/api/auth/csrf'
-  http.get(/\/auth\/csrf$/, () => new HttpResponse(null, { status: 204 })),
+  http.get("*/auth/csrf", () => new HttpResponse(null, { status: 204 })),
+  http.get("*/api/auth/csrf", () => new HttpResponse(null, { status: 204 })),
 ];
