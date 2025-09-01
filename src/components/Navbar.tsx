@@ -19,7 +19,7 @@ export default function Navbar() {
 
   const items: NavbarMenuItem[] = [];
 
-  const start = <div>stuff</div>;
+  const start = <div>NIHIL</div>;
 
   const end = (
     <section className="align-items-center flex gap-2">
