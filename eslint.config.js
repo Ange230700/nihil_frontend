@@ -12,7 +12,13 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default tseslint.config([
-  globalIgnores(["dist", "node_modules", "coverage", "public/themes"]),
+  globalIgnores([
+    "dist",
+    "node_modules",
+    "coverage",
+    "public/themes",
+    "dev-dist",
+  ]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
