@@ -15,16 +15,19 @@ import { I18nContext } from "@nihil_frontend/contexts/I18nContext";
 import { I18N_VERSION } from "virtual:i18n-version";
 
 type Messages = Record<string, string>;
+interface JsonMod<T> {
+  default: T;
+}
 
 const CATALOGS: Record<Locale, () => Promise<Messages>> = {
   en: () =>
-    import("@nihil_frontend/i18n/en.json", {
-      with: { type: "json" },
-    }) as unknown as Promise<Messages>,
+    import("@nihil_frontend/i18n/en.json").then(
+      (m: JsonMod<Messages>) => m.default,
+    ),
   fr: () =>
-    import("@nihil_frontend/i18n/fr.json", {
-      with: { type: "json" },
-    }) as unknown as Promise<Messages>,
+    import("@nihil_frontend/i18n/fr.json").then(
+      (m: JsonMod<Messages>) => m.default,
+    ),
 };
 
 // Minimal PrimeReact locales

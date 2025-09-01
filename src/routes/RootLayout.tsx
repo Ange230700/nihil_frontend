@@ -3,6 +3,7 @@
 import { Outlet, ScrollRestoration } from "react-router-dom";
 import Header from "@nihil_frontend/components/Header";
 import Footer from "@nihil_frontend/components/Footer";
+import SessionExpiredListener from "@nihil_frontend/app/bootstrap/SessionExpiredListener";
 
 export default function RootLayout() {
   return (
@@ -13,6 +14,7 @@ export default function RootLayout() {
       </main>
       <Footer />
       <ScrollRestoration />
+      <SessionExpiredListener />
     </>
   );
 }

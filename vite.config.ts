@@ -1,11 +1,6 @@
 // vite.config.ts
 
-import {
-  defineConfig,
-  loadEnv,
-  type HtmlTagDescriptor,
-  type Plugin,
-} from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "path";
@@ -14,69 +9,24 @@ import i18nVersionPlugin from "./build/i18nVersionPlugin";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  // Safe URL helpers with sensible dev fallbacks
-  const USER_URL = env.VITE_USER_SERVICE_API_URL;
-  const POST_URL = env.VITE_POST_SERVICE_API_URL;
-  // Derive allowed API origins from your VITE_* URLs (fallbacks for local dev)
-  const userOrigin = new URL(USER_URL).origin;
-  const postOrigin = new URL(POST_URL).origin;
-  const apiHosts = Array.from(
+
+  // Safe fallbacks in dev so new URL(...) doesn't throw
+  const USER_URL = env.VITE_USER_SERVICE_API_URL || "http://localhost:3001";
+  const POST_URL = env.VITE_POST_SERVICE_API_URL || "http://localhost:3002";
+
+  // Build the API host list at build time
+  const hosts = Array.from(
     new Set([new URL(USER_URL).host, new URL(POST_URL).host]),
   );
 
-  const isDev = mode === "development";
-
-  if (!isDev && (!USER_URL || !POST_URL)) {
-    throw new Error("Missing VITE_* API URLs in production.");
-  }
-
-  const cspPlugin = (): Plugin => ({
-    name: "nihil-csp",
-    enforce: "pre",
-    transformIndexHtml(): HtmlTagDescriptor[] {
-      const connect = isDev
-        ? "'self' ws: http: https:" // dev: allow Vite HMR + any localhost APIs
-        : `'self' ${userOrigin} ${postOrigin}`;
-
-      const csp = [
-        "default-src 'self'",
-        "base-uri 'self'",
-        "form-action 'self'",
-        "frame-ancestors 'self'",
-        // Images/fonts from self + data/blob (avatars, inlined assets)
-        "img-src 'self' data: blob:",
-        "font-src 'self' data:",
-        // React inline style props & some third-party components use inline styles
-        "style-src 'self' 'unsafe-inline'",
-        // Dev needs eval for HMR; drop it in production
-        isDev ? `script-src 'self' 'unsafe-eval'` : `script-src 'self'`,
-        // XHR/fetch/websocket targets
-        `connect-src ${connect}`,
-        // Service workers/workers
-        `worker-src 'self' blob:`,
-        `manifest-src 'self'`,
-        // Optional: upgrade mixed content if you ever serve behind HTTPS only
-        // `upgrade-insecure-requests`,
-      ].join("; ");
-      return [
-        {
-          tag: "meta",
-          injectTo: "head-prepend",
-          attrs: { "http-equiv": "Content-Security-Policy", content: csp },
-        },
-      ];
-    },
-  });
+  // Escape for regex and create a literal that Workbox can embed
+  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hostPattern = hosts.map(escapeRe).join("|");
+  const apiRegex = new RegExp(`^https?:\\/\\/(${hostPattern})\\/api(\\/|$)`);
 
   return {
     plugins: [
-      i18nVersionPlugin({
-        // optional: list files explicitly, else it scans src/i18n/*.json
-        locales: ["src/i18n/en.json", "src/i18n/fr.json"],
-        // virtualId: "virtual:i18n-version",
-        // algo: "sha256",
-      }),
-      cspPlugin(),
+      i18nVersionPlugin({ locales: ["src/i18n/en.json", "src/i18n/fr.json"] }),
       tailwindcss(),
       react(),
       VitePWA({
@@ -108,26 +58,23 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
           cleanupOutdatedCaches: true,
           globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
           navigateFallback: "/index.html",
           runtimeCaching: [
-            // 🔹 API (dev + prod) — NetworkFirst
+            // ✅ Use a RegExp so no external variables are needed in the SW
             {
-              urlPattern: ({ url }) =>
-                apiHosts.includes(url.host) && /\/api(\/|$)/.test(url.pathname),
+              urlPattern: apiRegex,
               handler: "NetworkFirst",
               options: {
                 cacheName: "nihil-api",
                 networkTimeoutSeconds: 3,
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24, // 1 day
-                },
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
                 cacheableResponse: { statuses: [0, 200] },
               },
             },
-            // 🔹 Prime themes CSS — CacheFirst
             {
               urlPattern: ({ url }) =>
                 url.pathname.startsWith("/themes/") &&
@@ -137,7 +84,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: "prime-themes",
                 expiration: {
                   maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
                 },
                 cacheableResponse: { statuses: [0, 200] },
               },
@@ -146,15 +93,11 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    resolve: {
-      alias: {
-        "@nihil_frontend": resolve(__dirname, "src"),
-      },
-    },
+    resolve: { alias: { "@nihil_frontend": resolve(__dirname, "src") } },
     test: {
       environment: "jsdom",
       globals: true,
-      setupFiles: ["./src/tests/setup.ts"], // if you add it
+      setupFiles: ["./src/tests/setup.ts"],
       coverage: { reporter: ["text", "html"] },
     },
   };
