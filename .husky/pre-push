@@ -1,3 +1,5 @@
+# nihil_frontend\.husky\pre-push
+
 set -e
 
 # Optional: skip on tag pushes

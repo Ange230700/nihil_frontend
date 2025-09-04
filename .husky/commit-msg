@@ -1,1 +1,3 @@
+# nihil_frontend\.husky\commit-msg
+
 npm run commitlint ${1}
